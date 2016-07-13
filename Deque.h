@@ -18,6 +18,8 @@
 #include <stdexcept> // out_of_range
 #include <utility>   // !=, <=, >, >=
 
+#include <stdexcept> // out_of_range
+
 // -----
 // using
 // -----
@@ -153,10 +155,10 @@ class my_deque {
         pointer* outer_end;
 
         //The begin and end of inner arrays
-        pointer begin;
-        pointer end;
+        pointer _begin;
+        pointer _end;
 
-        size_type size;
+        size_type _size;
         size_type outer_size;
 
         //outer array capacity
@@ -300,7 +302,7 @@ class my_deque {
                 reference operator * () const {
                     // <your code>
                     // dummy is just to be able to compile the skeleton, remove it
-                    return *(*(q->outer_begin+outer_index)+index);}
+                    return *(*(x->outer_begin+outer_index)+index);}
 
                 // -----------
                 // operator ->
@@ -500,7 +502,7 @@ class my_deque {
                  * @param out a size_type index represents the outer index that this iterator is point at
                  * output a const_iterator 
                  */
-                const_iterator (const my_deque* q, size_type s, size_type out):i(const_case<my_deque*>(q),s,out) {
+                const_iterator (const my_deque* q, size_type s, size_type out):i(const_cast<my_deque*>(q),s,out) {
                     // <your code>
                     assert(valid());}
 
@@ -616,7 +618,7 @@ class my_deque {
          * @param v is const_reference by value
          * @param a is allocator_type by reference
          */
-        explicit my_deque (size_type s = 0, const_reference v = value_type(), const allocator_type& a = allocator_type()): _a(a),size(s)
+        explicit my_deque (size_type s = 0, const_reference v = value_type(), const allocator_type& a = allocator_type()): _a(a),_size(s)
             {
 
             outer_size = ( s==0 )? 0:(s-1)/INNER_SIZE+1;
@@ -625,21 +627,21 @@ class my_deque {
 
             //default size 0
             if(s == 0)
-                begin = 0;
+                _begin = 0;
 
             for(int i = 0; i< s; ++i){
                 if(i == 0){
-                    begin = _a.allocate(INNER_SIZE);
-                    outer_top[i] = begin;
+                    _begin = _a.allocate(INNER_SIZE);
+                    outer_top[i] = _begin;
                 }
                 else if(i == s-1){
                     outer_top[i]=_a.allocate(INNER_SIZE);
-                    end = outer_top[i]+(size%INNER_SIZE);
+                    _end = outer_top[i]+(_size%INNER_SIZE);
                 }
                 else
                     outer_top[i]=_a.allocate(INNER_SIZE);
             }
-            end = begin + s;
+            _end = _begin + s;
             outer_bot = outer_top + outer_size -1;
             outer_begin = outer_top;
             outer_end = outer_bot;
@@ -652,19 +654,19 @@ class my_deque {
          * copy constructor
          * @param that is a my_deque passed by reference 
          */
-        my_deque (const my_deque& that): _a(that._a),size(that.size),outer_size(that.outer_size),capacity(that.capacity){
+        my_deque (const my_deque& that): _a(that._a),_size(that._size),outer_size(that.outer_size),capacity(that.capacity){
             
             outer_top = _b.allocate(that.outer_size);
             outer_bot = outer_top + (that.outer_bot-that.outer_top);
             outer_begin = outer_top + (that.outer_begin-that.outer_top);
             outer_end =  outer_top + (that.outer_end-that.outer_top);
 
-            for(int i = 0; i < that.size; ++i){
+            for(int i = 0; i < that._size; ++i){
                     outer_top[i] = _a.allocate(INNER_SIZE);
             }
 
-            begin = *outer_top + (that.begin - *(that.outer_top));
-            end = *outer_end + (that.end - *(that.outer_end));
+            _begin = *outer_top + (that._begin - *(that.outer_top));
+            _end = *outer_end + (that._end - *(that.outer_end));
 
 
             uninitialized_copy(_a, that.begin(), that.end(), begin());
@@ -674,14 +676,13 @@ class my_deque {
         // ----------
         // destructor
         // ----------
-        destroy (A& a, BI b, BI e) 
         /**
          * destructs and frees all memory
          */
         ~my_deque () {
             // <your code>
             clear();
-            destory(_a,begin(),end());
+            destroy(_a,begin(),end());
 
             for(int i  = 0; i <outer_size; ++i){
                 _a.deallocate(outer_top[i], INNER_SIZE);
@@ -712,9 +713,9 @@ class my_deque {
             }
             else {
                 clear();
-                resize(that.size());
-                auto temp = std::copy(that.begin(), that.end(), begin());
-                end = &(*temp);
+                resize(rhs.size());
+                auto temp = std::copy(rhs.begin(), rhs.end(), begin());
+                _end = &(*temp);
             }
 
             assert(valid());
@@ -726,41 +727,48 @@ class my_deque {
 
         /**
          * @param index is a size_type
-         * @return reference of that value at taht index
-         * copy assignment
+         * @return reference of that value at that index
          */
         reference operator [] (size_type index) {
             // <your code>
             // dummy is just to be able to compile the skeleton, remove it
-            size_type temp = index+ (begin - *outer_begin);
+            size_type temp = index+ (_begin - *outer_begin);
             size_type outer_index = temp/INNER_SIZE;
             size_type inner_index = temp%INNER_SIZE;
 
             return *(*(outer_begin+outer_index)+inner_index);
         }
 
-        /**
-         * <your documentation>
+     	/**
+         * @param index is a size_type
+         * @return const reference of that value at that index
          */
         const_reference operator [] (size_type index) const {
             return const_cast<my_deque*>(this)->operator[](index);}
 
         // --
         // at
-        // --
+        // -
 
         /**
-         * <your documentation>
+         * @param index is size_type 
+         * @return reference to value at that index
          * @throws out_of_range
          */
         reference at (size_type index) {
             // <your code>
-            // dummy is just to be able to compile the skeleton, remove it
-            static value_type dummy;
-            return dummy;}
+            size_type temp = index+ (_begin - *outer_begin);
+            size_type outer_index = temp/INNER_SIZE;
+            size_type inner_index = temp%INNER_SIZE;
+            if((index<0)||(index > _size - 1))
+                throw std::out_of_range("out range");
+
+            return *(*(outer_begin+outer_index)+inner_index);
+        }
 
         /**
-         * <your documentation>
+         * @param index is size_type 
+         * @return reference to value at that index
          * @throws out_of_range
          */
         const_reference at (size_type index) const {
@@ -771,17 +779,15 @@ class my_deque {
         // ----
 
         /**
-         * <your documentation>
+         * @return reference to last element
          */
         reference back () {
             // <your code>
-            // dummy is just to be able to compile the skeleton, remove it
-            static value_type dummy;
-            return dummy;
+            return *(_end-1);
         }
 
         /**
-         * <your documentation>
+         * @return const reference to last element
          */
         const_reference back () const {
             return const_cast<my_deque*>(this)->back();}
@@ -791,28 +797,31 @@ class my_deque {
         // -----
 
         /**
-         * <your documentation>
+		 * @return interator to first element
          */
         iterator begin () {
             // <your code>
-            return iterator(/* <your arguments> */);}
+            size_type temp = _begin - *outer_begin;
+            size_type temp2 = outer_begin - outer_top;
+            return iterator(this,temp,temp2);}
 
         /**
-         * <your documentation>
+		 * @return const interator to first element
          */
         const_iterator begin () const {
-            // <your code>
-            return const_iterator(/* <your arguments> */);}
+        	size_type temp = _begin - *outer_begin;
+            size_type temp2 = outer_begin - outer_top;
+            return const_iterator(this,temp,temp2);}
 
         // -----
         // clear
         // -----
 
         /**
-         * <your documentation>
+		 * Removes all elements in deque
          */
         void clear () {
-            // <your code>
+        	resize(0);
             assert(valid());}
 
         // -----
@@ -820,7 +829,7 @@ class my_deque {
         // -----
 
         /**
-         * <your documentation>
+         * @return True if deque is empty.
          */
         bool empty () const {
             return !size();}
@@ -830,46 +839,52 @@ class my_deque {
         // ---
 
         /**
-         * <your documentation>
+		 * @return interator to last element
          */
         iterator end () {
-            // <your code>
-            return iterator(/* <your arguments> */);}
+        	size_type temp = _end - *outer_end;
+            size_type temp2 = outer_end - outer_top;
+            return iterator(this,temp,temp2);}
 
         /**
-         * <your documentation>
+		 * @return const interator to last element
          */
         const_iterator end () const {
-            // <your code>
-            return const_iterator(/* <your arguments> */);}
+        	size_type temp = _end - *outer_end;
+            size_type temp2 = outer_end - outer_top;
+            return const_iterator(this,temp,temp2);}
 
         // -----
         // erase
         // -----
 
         /**
-         * <your documentation>
+         * erases the value at the iterator location
+         * @param i a iterator which its value need to be deleted.
+         * @return Iterator to next location.
          */
-        iterator erase (iterator) {
+        iterator erase (iterator i) {
             // <your code>
+            auto temp = i;
+            std::copy(i+1,end(),i);
+            resize(_size - 1);
             assert(valid());
-            return iterator();}
+            return temp;}
 
         // -----
         // front
         // -----
 
         /**
-         * <your documentation>
+         * @return reference to first element
          */
         reference front () {
             // <your code>
             // dummy is just to be able to compile the skeleton, remove it
-            static value_type dummy;
-            return dummy;}
+            return *_begin;}
 
         /**
-         * <your documentation>
+         * @return const reference to first element
          */
         const_reference front () const {
             return const_cast<my_deque*>(this)->front();}
@@ -879,12 +894,30 @@ class my_deque {
         // ------
 
         /**
-         * <your documentation>
+         * @param i iterator 
+         * @param v const_reference of the value to be inserted
+         * @return an iterator pointing to the inserted element
          */
-        iterator insert (iterator, const_reference) {
-            // <your code>
-            assert(valid());
-            return iterator();}
+        iterator insert (iterator i, const_reference v) {
+        	if(i == begin()){
+        		push_front(v);
+        		return begin();
+        	}
+        	else if(i == end()){
+        		pop_back(v);
+        		return --end();
+        	}
+        	else{
+        		resize(_size+1);
+        		auto temp = end();
+        		while((temp-1) != i){
+        			*temp = *(temp-1);
+        			--temp;
+        		}
+        		*i = v;
+        		return i;
+        	}
+        }
 
         // ---
         // pop
@@ -938,11 +971,11 @@ class my_deque {
         // ----
 
         /**
-         * <your documentation>
+		 * @return size_type number of elements in this deque
          */
         size_type size () const {
             // <your code>
-            return 0;}
+            return _size;}
 
         // ----
         // swap
