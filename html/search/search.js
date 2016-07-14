@@ -14,7 +14,8 @@ var indexSectionsWithContent =
   4: "_ciox",
   5: "abcdiprsv",
   6: "o",
-  7: "c"
+  7: "o",
+  8: "c"
 };
 
 var indexSectionNames =
@@ -26,7 +27,8 @@ var indexSectionNames =
   4: "variables",
   5: "typedefs",
   6: "related",
-  7: "pages"
+  7: "defines",
+  8: "pages"
 };
 
 function convertToId(search)

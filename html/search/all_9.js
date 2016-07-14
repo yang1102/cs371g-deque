@@ -13,6 +13,7 @@ var searchData=
   ['operator_3d',['operator=',['../classmy__deque.html#aaa103f2058854bb98e500de6305b1564',1,'my_deque']]],
   ['operator_3d_3d',['operator==',['../classmy__deque.html#aca1e37552707f9d7710a6af82cf1262e',1,'my_deque::operator==()'],['../classmy__deque_1_1iterator.html#a27d0df37bd079bf4e62faa0b468b060c',1,'my_deque::iterator::operator==()'],['../classmy__deque_1_1const__iterator.html#a772a728ee48f5cb8904aaae842b0eb82',1,'my_deque::const_iterator::operator==()']]],
   ['operator_5b_5d',['operator[]',['../classmy__deque.html#a489b77decf4d424f43092e194d69444f',1,'my_deque::operator[](size_type index)'],['../classmy__deque.html#ad79fcd9e94dfc5566e1cd0ce606cf208',1,'my_deque::operator[](size_type index) const ']]],
+  ['optmize',['OPTMIZE',['../Deque_8h.html#a522a268fbd32fcd54a05d9205a077f9e',1,'Deque.h']]],
   ['outer_5fbegin',['outer_begin',['../classmy__deque.html#abe4c3d87c37dcb0aac43417a7cdb6671',1,'my_deque']]],
   ['outer_5fbot',['outer_bot',['../classmy__deque.html#aed5cdf9f8d01c4b72038efedcdeaf468',1,'my_deque']]],
   ['outer_5fend',['outer_end',['../classmy__deque.html#aec40e7d7fad744fccb8f7d23c4298650',1,'my_deque']]],
