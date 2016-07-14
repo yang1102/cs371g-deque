@@ -20,6 +20,7 @@
 
 #include <stdexcept> // out_of_range
 
+#define OPTMIZE true
 // -----
 // using
 // -----
@@ -76,8 +77,10 @@ BI uninitialized_fill (A& a, BI b, BI e, const U& v) {
 // -------
 // my_deque
 // -------
-
+#ifdef OPTMIZE
 template < typename T, typename A = std::allocator<T> >
+#endif
+    
 class my_deque {
     public:
         // --------
@@ -281,11 +284,12 @@ class my_deque {
                  * @param out a size_type index represents the outer index that this iterator is point at
                  * output an iterator 
                  */
-                iterator (my_deque* q, size_type s, size_type out): x(q) {
+                iterator (my_deque* q, size_type s=0): x(q) {
 
                     // <your code>
-                    this->index = s;
-                    this->outer_index = out;
+                 
+                    this->index = s%INNER_SIZE;
+                    this->outer_index = s/INNER_SIZE;
                     assert(valid());}
 
                 // Default copy, destructor, and copy assignment.
@@ -503,7 +507,7 @@ class my_deque {
                  * @param out a size_type index represents the outer index that this iterator is point at
                  * output a const_iterator 
                  */
-                const_iterator (const my_deque* q, size_type s, size_type out):i(const_cast<my_deque*>(q),s,out) {
+                const_iterator (const my_deque* q, size_type s=0 ):i(const_cast<my_deque*>(q),s) {
                     // <your code>
                     assert(valid());}
 
@@ -611,16 +615,16 @@ class my_deque {
 
     public:
 
-   //  	explicit my_deque (const allocator_type& a = allocator_type()) : _a(a), _b() {
-   //  		_size = 0;
-			// outer_top = 0;
-   //      	outer_bot = 0;
-   //      	outer_begin = 0;
-   //      	outer_end = 0;
-   //      	_begin = 0;
-   //      	_end = 0;
-   //      	outer_size = 0;
-   //      	capacity = 0;
+   //   explicit my_deque (const allocator_type& a = allocator_type()) : _a(a), _b() {
+   //       _size = 0;
+            // outer_top = 0;
+   //       outer_bot = 0;
+   //       outer_begin = 0;
+   //       outer_end = 0;
+   //       _begin = 0;
+   //       _end = 0;
+   //       outer_size = 0;
+   //       capacity = 0;
    //      assert(valid());
         // }
 
@@ -635,17 +639,17 @@ class my_deque {
          * @param a is allocator_type by reference
          */
         explicit my_deque (size_type s = 0 , const_reference v = value_type(), const allocator_type& a = allocator_type()): _a(a),_size(s)
-            {
+        {
             if(s == 0){
-			outer_top = 0;
-        	outer_bot = 0;
-        	outer_begin = 0;
-        	outer_end = 0;
-        	_begin = 0;
-        	_end = 0;
-        	outer_size = 0;
-        	capacity = 0;
-		
+            outer_top = 0;
+            outer_bot = 0;
+            outer_begin = 0;
+            outer_end = 0;
+            _begin = 0;
+            _end = 0;
+            outer_size = 0;
+            capacity = 0;
+        
             }
             else{
             _size = s;
@@ -660,24 +664,26 @@ class my_deque {
                 if(i == 0){
                     _begin = _a.allocate(INNER_SIZE);
                     outer_top[i] = _begin;
-                    _end = outer_top[i]+temp;
+                    // _end = outer_top[i]+temp;
+
                 }
                 else if(i == outer_size-1){
                     outer_top[i]=_a.allocate(INNER_SIZE);
-                    _end = outer_top[i]+temp;
+                    // _end = outer_top[i]+temp-1;
                 }
                 else{
                     outer_top[i]=_a.allocate(INNER_SIZE);
                 }
 
             }
-
-            outer_bot = outer_top + outer_size -1;
+            _end = _begin+s;
+            outer_bot = outer_top + outer_size;
             outer_begin = outer_top;
             outer_end = outer_bot;
             uninitialized_fill (_a, begin(), end(), v);
             assert(valid());
         }
+         
       }
 
         /**
@@ -830,18 +836,14 @@ class my_deque {
          */
         iterator begin () {
             // <your code>
-            size_type temp = _begin - *outer_begin;
-            size_type temp2 = outer_begin - outer_top;
-            return iterator(this,temp,temp2);
+            return iterator(this);
         }
 
         /**
          * @return const interator to first element
          */
         const_iterator begin () const {
-            size_type temp = _begin - *outer_begin;
-            size_type temp2 = outer_begin - outer_top;
-            return const_iterator(this,temp,temp2);}
+            return const_iterator(this);}
 
         // -----
         // clear
@@ -872,17 +874,20 @@ class my_deque {
          * @return interator to last element
          */
         iterator end () {
-            size_type temp = _end - *outer_end;
-            size_type temp2 = outer_end - outer_top;
-            return iterator(this,temp,temp2);}
+            // size_type temp = _end - *outer_end;
+            // size_type temp2 = outer_end - outer_top;
+            // return iterator(this,temp,temp2);}
+            return iterator(this, size());}
 
         /**
          * @return const interator to last element
          */
         const_iterator end () const {
-            size_type temp = _end - *outer_end;
-            size_type temp2 = outer_end - outer_top;
-            return const_iterator(this,temp,temp2);}
+            // size_type temp = _end - *outer_end;
+            // size_type temp2 = outer_end - outer_top;
+            // return const_iterator(this,temp,temp2);}
+            return const_iterator(this, size());}
+
 
         // -----
         // erase
@@ -934,7 +939,7 @@ class my_deque {
                 return begin();
             }
             else if(i == end()){
-                pop_back(v);
+                push_back(v);
                 return --end();
             }
             else{
@@ -954,24 +959,24 @@ class my_deque {
         // ---
 
         /**
-	     * Deletes an element from the back
+         * Deletes an element from the back
          */
         void pop_back () {
             // <your code>
             if(empty())
-            	throw std::out_of_range("There is nothing to pop back");
+                throw std::out_of_range("There is nothing to pop back");
             resize(_size - 1);
             assert(valid());}
 
         /**
-	     * Deletes an element from the front
+         * Deletes an element from the front
          */
         void pop_front () {
             if(empty())
-            	throw std::out_of_range("There is nothing to pop front");
+                throw std::out_of_range("There is nothing to pop front");
             _a.destroy(_begin);
-		    _begin = &at(1);
-		    --_size;
+            _begin = &at(1);
+            --_size;
             assert(valid());
         }
 
@@ -980,8 +985,8 @@ class my_deque {
         // ----
 
         /**
-		 * adds a new element to the back 
-		 * @param v const_reference of the value 
+         * adds a new element to the back 
+         * @param v const_reference of the value 
          */
         void push_back (const_reference v) {
             // <your code>
@@ -989,94 +994,92 @@ class my_deque {
             assert(valid());}
 
         /**
-         * <your documentation>
+         * adds a new element to the front 
+         * @param v const_reference of the value 
          */
-        void push_front (const_reference) {
+        void push_front (const_reference v) {
             // <your code>
-            assert(valid());}
+            if(outer_begin != outer_top){
+                --outer_begin;
+                *outer_begin = _a.allocate(INNER_SIZE);
+                _begin = *outer_begin + (INNER_SIZE - 1);
+                *begin() = v;
+                ++_size;
+            }
+            else if (*outer_begin != _begin) {
+                --_begin;
+                *begin() = v;
+                ++_size;
+            }
+            else{
+                size_type copy_size = size();
+                size_type newsize = size() + INNER_SIZE;
+                my_deque temp(newsize, v);
+                std::copy(begin(), end(), temp.begin()+INNER_SIZE);
+                destroy(temp._a, temp.begin(), temp.begin() + INNER_SIZE-1);
+                temp._begin  = temp._begin + INNER_SIZE-1;
+                temp._end  = temp._end;
+                temp.outer_begin = temp.outer_begin ;
+                swap(temp);
+                // size_type newsize = size() * 2;
+                // pop_back();
+                // --_begin;
+                // *begin() = v;
+                 // _a.construct(&*begin(), v); 
+                 _size = copy_size+1;
+             }
+                
+        }
 
         // ------
         // resize
         // ------
 
         /**
-		 * @param s is a size_type 
+         * @param s is a size_type 
          * @param v is a const_reference which is used to fill new positions if size is greater than current size
          */
         void resize (size_type s, const_reference v = value_type()) {
             // <your code>
-        	if ( s == _size)
-        		return;
-        	else if(s < _size){
-        		auto temp = destroy(_a, begin() + s , end());
-        		_end = &*temp;
-        		outer_end = outer_begin + (s + (_begin - *outer_begin))/INNER_SIZE ; 
-        	}
-        	// else if(s <= capacity){
-        	// 	std::cout<<"here2";
-        	// 	auto temp = uninitialized_fill(_a, end(), end() , v);
-        	// 	_end = &*temp;
-        	// }
-        	// else{
+            if ( s == _size)
+                return;
+            else if(s < _size){
+                auto temp = destroy(_a, begin() + s , end());
+                _end = &*temp;
+                outer_end = outer_begin + (s + (_begin - *outer_begin))/INNER_SIZE ; 
 
-        	// }
-        	else{
-        		size_type new_outer_ends = (s + (_begin - *outer_begin))/INNER_SIZE ;
-        		if(new_outer_ends == (outer_end - outer_begin)){
-        			std::cout<<"here1";
-        			auto temp = uninitialized_fill(_a, end(), begin() + s , v);
-        			_end = &*temp;
-        		}
-        		else if (new_outer_ends <= (outer_bot - outer_begin)) {
-        			std::cout<<"here2";
+                outer_size = outer_end - outer_top;
+            }
+            else{
+                if(s <= (outer_end - outer_begin)){
+                    auto temp = uninitialized_fill(_a, end(), begin() + s , v);
+                    _end = &*temp;
+                }
+                else {
+                    size_type newsize = size() * 2;
+                    if(s >= newsize){
+                        newsize = s+INNER_SIZE;
+                    }
+                    size_type middled = (newsize - s) / 2;
+                    size_type enddata = middled;
+                    if ((newsize - s) % 2){
+                        ++enddata;
+                    }
 
-        			size_type more_row = new_outer_ends - (outer_end- outer_begin) ;
-					for (int i = 0; i < more_row; ++i) {
-							++outer_end; 
-							*outer_end = _a.allocate(INNER_SIZE);
-						}
-						auto temp = uninitialized_fill(_a, end(), begin() + s , v);
-						_end = &*temp;
+                    my_deque temp(newsize, v);
+                    std::copy(begin(), end(), temp.begin() + middled);
+                    destroy(temp._a, temp.begin(), temp.begin() + middled);
+                    destroy(temp._a, temp.end() - enddata, temp.end());
+                    temp._begin  = temp._begin + middled;
+                    temp._end  = temp._end  - enddata;
 
-        		}
-        		else {
-        			std::cout<<"here3";
-        			size_type new_outer_size = (s-1)/INNER_SIZE+1;
-        			pointer* new_outer_top = _b.allocate(new_outer_size);
+                    swap(temp);
+                }
 
-        			capacity = new_outer_size*INNER_SIZE;
-
-
-        			for(int i = 0; i< new_outer_size ; ++i){
-        				if(i <= outer_size)
-							new_outer_top[i] = outer_top[i];
-						else
-							new_outer_top[i] = _a.allocate(INNER_SIZE);
-					}
-
-					outer_top = new_outer_top;
-					outer_bot = outer_top + s ;
-					// auto temp = std::copy(begin(), end(), new_outer_top);
-					// if(s<=capacity){
-					auto temp = uninitialized_fill(_a, end(), begin() + s , v);
-					_end = &*temp;
-
-					// // }
-     //    			size_type more_row = new_outer_ends - (outer_bot - outer_begin) + 1;
-					// // size_type totalRow = outer_bot - outer_top + moreRow;
-					// _b.allocate(more_row);
-					// capacity += more_row*INNER_SIZE;
-					// for(int i = 0; i< more_row ; ++i){
-					// 	++outer_end;
-					// 	*outer_end = _a.allocate(INNER_SIZE);
-					// }
-					// auto temp = uninitialized_fill(_a, end(), begin() + s , v);
-					// _end = &*temp;
-        		}
-
-        	}
-        	_size = s;
-            assert(valid());}
+            }
+            _size = s;
+            assert(valid());
+        }
 
         // ----
         // size
@@ -1094,7 +1097,8 @@ class my_deque {
         // ----
 
         /**
-         * <your documentation>
+         * @param rhs a my_deque by reference 
+         * swaps contents of two deque
          */
         void swap (my_deque& rhs) {
              if (_a == rhs._a) {
@@ -1106,10 +1110,7 @@ class my_deque {
             std::swap(outer_end, rhs.outer_end);
             std::swap(_size, rhs._size);
             std::swap(outer_size, rhs.outer_size);
-
-
-            std::swap(_size, rhs._size);
-	    } else {
+        } else {
                 my_deque temp(*this);
                 *this = rhs;
                 rhs = temp;}

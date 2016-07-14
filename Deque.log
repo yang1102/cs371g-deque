@@ -1,0 +1,29 @@
+commit 14fd49655d169c262f675a911b92645e8a113229
+Author: Shuoyi Yang <yangshy2012@gmail.com>
+Date:   Wed Jul 13 15:18:29 2016 -0500
+
+    Finish most of the methods
+
+commit 6a862e2dc32864ced5a609299179f5753eb3e79d
+Author: Shuoyi Yang <yangshy2012@gmail.com>
+Date:   Wed Jul 13 03:53:20 2016 -0500
+
+    Basic function done
+
+commit c7bf78ac8b26356cc58f4a89bdd987fde58982e2
+Author: Shuoyi Yang <yangshy2012@gmail.com>
+Date:   Tue Jul 12 21:46:34 2016 -0500
+
+    finish the constructor, and it closes #1
+
+commit 54118970e83525a2f272513fa3e31c9eb52980ad
+Author: Shuoyi Yang <yangshy2012@gmail.com>
+Date:   Sun Jul 10 01:40:17 2016 -0500
+
+    Initial project
+
+commit 0819db930924f24b7e19b948834bf819f565c131
+Author: yang1102 <yangshy2012@gmail.com>
+Date:   Sun Jul 10 01:32:48 2016 -0500
+
+    Initial commit
